@@ -1,26 +1,418 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* Safe Areas for iPhone Notch */
+  --spacing-safe-top: env(safe-area-inset-top);
+  --spacing-safe-bottom: env(safe-area-inset-bottom);
+  --spacing-safe-left: env(safe-area-inset-left);
+  --spacing-safe-right: env(safe-area-inset-right);
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Spring animation for an app-like feel */
+  --animate-spring-in: spring-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  @keyframes spring-in {
+    0% {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  /* ========================================
+     PRIMARY COLORS - Eagle Express Theme
+     (darker blue emphasis)
+     ======================================== */
+  /* Maps to: bg-primary, text-primary, border-primary */
+  --color-primary: #005b96;
+  /* deep eagle blue */
+  --color-primary-foreground: oklch(1 0 0);
+
+  /* Variations */
+  --color-primary-hover: #004574;
+  /* darker on press */
+  --color-primary-active: #003555;
+  /* deepest accent */
+  --color-primary-accent: #00bcd4;
+  /* supporting teal from logo */
+  --color-primary-surface: #e0f4ff;
+  /* light blue surface */
+
+  /* ========================================
+     SLATE COLOR PALETTE (OKLCH) - THEMED NEUTRALS
+     ======================================== */
+  /* Replaced standard slate with Indigo-Tinted Neutrals for consistency */
+  --color-slate-50: oklch(0.99 0.01 240);
+  /* Slight Indigo Tint */
+  --color-slate-100: oklch(0.97 0.02 240);
+  --color-slate-200: oklch(0.92 0.03 240);
+  --color-slate-300: oklch(0.87 0.04 240);
+  --color-slate-400: oklch(0.7 0.08 240);
+  --color-slate-500: oklch(0.55 0.1 240);
+  --color-slate-600: oklch(0.45 0.11 240);
+  --color-slate-700: oklch(0.35 0.12 240);
+  --color-slate-800: oklch(0.25 0.13 240);
+  --color-slate-900: oklch(0.18 0.1 240);
+  /* Deep Indigo Black */
+  --color-slate-950: oklch(0.12 0.1 240);
+  /* Ink Indigo */
+
+  /* ========================================
+     SEMANTIC BACKGROUNDS
+     ======================================== */
+  /* Maps to: bg-background, text-foreground */
+  --color-background: var(--color-slate-50);
+  --color-foreground: var(--color-slate-900);
+
+  /* ========================================
+     CARD SYSTEM
+     ======================================== */
+  /* Maps to: bg-card, text-card-foreground */
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: var(--color-slate-900);
+
+  /* Custom: bg-card-dark */
+  --color-card-dark: var(--color-slate-900);
+  --color-card-dark-foreground: oklch(1 0 0);
+  --color-card-dark-border: var(--color-slate-700);
+  --color-card-dark-muted: var(--color-slate-400);
+
+  /* Glassmorphism */
+  --color-card-glass: rgba(255, 255, 255, 0.1);
+  --color-card-glass-border: rgba(255, 255, 255, 0.2);
+
+  /* ========================================
+     UI ELEMENTS
+     ======================================== */
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: var(--color-slate-900);
+
+  --color-secondary: var(--color-slate-100);
+  --color-secondary-foreground: var(--color-slate-900);
+
+  --color-muted: var(--color-slate-100);
+  --color-muted-foreground: var(--color-slate-500);
+
+  --color-accent: var(--color-slate-200);
+  --color-accent-foreground: var(--color-slate-900);
+
+  --color-destructive: oklch(0.5 0.2 25);
+  --color-destructive-foreground: oklch(1 0 0);
+  --color-destructive-light: oklch(0.95 0.05 25);
+
+  --color-border: var(--color-slate-200);
+  --color-input: var(--color-slate-200);
+  --color-ring: var(--color-primary);
+
+  /* ========================================
+     BORDER RADIUS
+     ======================================== */
+  /* Maps to: rounded, rounded-sm, rounded-md, etc. */
+  --radius: 0.75rem;
+  /* rounded */
+  --radius-sm: 0.5rem;
+  /* rounded-sm */
+  --radius-md: 0.75rem;
+  /* rounded-md (Same as default in your config) */
+  --radius-lg: 1rem;
+  /* rounded-lg */
+  --radius-xl: 1.5rem;
+  /* rounded-xl */
+  --radius-full: 9999px;
+  /* rounded-full */
+
+  /* ========================================
+     STATUS COLORS
+     ======================================== */
+  /* Usage: bg-status-success, text-status-success-foreground */
+  --color-status-success: oklch(0.95 0.05 150);
+  --color-status-success-foreground: oklch(0.3 0.1 150);
+  --color-status-success-bright: oklch(0.55 0.15 150);
+
+  --color-status-pending: oklch(0.96 0.03 260);
+  --color-status-pending-foreground: oklch(0.35 0.1 260);
+  --color-status-pending-bright: oklch(0.55 0.15 260);
+
+  --color-status-warn: oklch(0.97 0.05 85);
+  --color-status-warn-foreground: oklch(0.4 0.15 50);
+  --color-status-warn-bright: oklch(0.65 0.15 75);
+
+  --color-status-info: oklch(0.95 0.05 210);
+  --color-status-info-foreground: oklch(0.35 0.12 210);
+  --color-status-info-bright: oklch(0.55 0.15 210);
+
+  --color-status-neutral: var(--color-slate-100);
+  --color-status-neutral-foreground: var(--color-slate-600);
+
+  /* ========================================
+     SHADOWS
+     ======================================== */
+  /* Usage: shadow-sm, shadow-md, etc. */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+  0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+  0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+  0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+  /* ========================================
+     ANIMATIONS & TRANSITIONS
+     ======================================== */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 500ms cubic-bezier(0.215, 0.61, 0.355, 1);
+
+  /* Animations */
+  --animate-fade-in: fadeIn 0.3s ease-in-out;
+  --animate-slide-up: slideUp 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
+  --animate-scale-in: scaleIn 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+  --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(0.5);
+      opacity: 0.8;
+      box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.5);
+    }
+
+    70% {
+      transform: scale(1.1);
+      opacity: 0;
+      box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+    }
+
+    100% {
+      transform: scale(0.5);
+      opacity: 0;
+    }
+  }
+
+  @keyframes badge-pulse {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    50% {
+      transform: scale(1.4);
+      opacity: 0.5;
+    }
+
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Smooth Radix Animations */
+[data-state="open"]:not(button):not(a) {
+  animation: spring-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+[data-state="closed"]:not(button):not(a) {
+  animation: fade-out 0.2s ease-in forwards;
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   CUSTOM UTILITY CLASSES
+   ======================================== */
+@layer utilities {
+  .badge-pulse {
+    animation: badge-pulse 2s infinite;
+  }
+
+  .card-dark {
+    background-color: var(--color-card-dark);
+    color: var(--color-card-dark-foreground);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .glass {
+    background: var(--color-card-glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--color-card-glass-border);
+  }
+
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  /* Transition Shortcuts */
+  .transition-smooth {
+    transition: all var(--transition-smooth);
+  }
+
+  .hover-lift {
+    transition:
+      transform var(--transition-base),
+      box-shadow var(--transition-base);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+  }
+
+  /* Gradients */
+  .gradient-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-active) 100%);
+  }
+
+  /* Hide scrollbars but keep scroll behavior (mobile-style) */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Utility to make a block span the full viewport width (remove left/right gaps) */
+  @media (max-width: 767px) {
+    .full-bleed {
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+    }
+  }
+}
+
+/* ========================================
+   BASE RESETS
+   ======================================== */
+@layer base {
+  html {
+    height: 100dvh;
+    /* Use dynamic viewport height */
+    overflow: hidden;
+    /* Lock the viewport */
+    overscroll-behavior: none;
+    /* No bounce on viewport */
+    scroll-behavior: smooth;
+  }
+
+  body {
+    height: 100%;
+    overflow: hidden;
+    /* Lock body */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    @apply bg-background text-foreground antialiased;
+  }
+
+  /* Main Scroll Container Class */
+  .ios-scroll-container {
+    height: 100%;
+    overflow-y: scroll;
+    /* Force scrolling context */
+    -webkit-overflow-scrolling: touch;
+    /* Momentum Scroll */
+    overscroll-behavior-y: contain;
+    /* Bounce content only */
+    padding-bottom: calc(120px + env(safe-area-inset-bottom));
+
+    /* Small bottom padding on desktop since Nav is on side */
+    @media (min-width: 768px) {
+      padding-bottom: 2rem;
+    }
+
+    /* Ensure content clears nav */
+
+    /* 
+      Seamless Rubber-Banding: 
+      Background gradient ensures the top "pull" area matches the blue header,
+      while the rest of the page remains the standard background color.
+      Using fixed attachment keeps the "substrate" stationary while content moves.
+    */
+    background: linear-gradient(to bottom, var(--color-primary-active) 0%, var(--background) 50%);
+    background-attachment: fixed;
+  }
+
+  /* Utility to force scroll bounce on short content */
+  .force-bounce {
+    min-height: calc(100% + 1px);
+  }
+
+  /* Prevent text selection for app-feel */
+  *:not(input):not(textarea) {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Default focus outline — uses focus-visible so it doesn't interfere with click-focus */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  /* Remove ALL focus outlines for inputs inside .group wrappers (LegendInput/LegendTextarea manage their own) */
+  .group input:focus,
+  .group input:focus-visible,
+  .group textarea:focus,
+  .group textarea:focus-visible,
+  .group select:focus,
+  .group select:focus-visible {
+    outline: none !important;
+  }
 }
