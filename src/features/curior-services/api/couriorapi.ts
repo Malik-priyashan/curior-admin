@@ -2,6 +2,7 @@ import type {
   CouriorService,
   CouriorServiceRequest,
   PaginationQuery,
+  Branding,
 } from "../types/courior-service.types";
 import {
   toCreateCourierServiceDto,
@@ -82,6 +83,67 @@ export async function getCouriorServiceRequests(
   return list<CouriorServiceRequest>(
     await requestJson("/api/backend/courier-service/requests", "Failed to fetch courier service requests", { headers: auth(accessToken) })
   );
+}
+
+export async function getBrandingByCourierServiceId(
+  id: string,
+  accessToken?: string
+): Promise<Branding | null> {
+  const safeId = id?.trim();
+  if (!safeId) throw new Error("Courier service id is required");
+  try {
+    const data = await requestJson(
+      `/api/backend/courier-service/branding/${encodeURIComponent(safeId)}`,
+      "Failed to fetch branding",
+      { headers: auth(accessToken) }
+    );
+    // If backend wraps branding in { data: ... }, return data.data
+    if (data && typeof data === "object") {
+      const rec = data as Record<string, unknown>;
+      if ("data" in rec) return (rec["data"] as Branding) ?? null;
+    }
+    return (data as Branding) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function createBranding(
+  id: string,
+  payload: Branding,
+  accessToken?: string
+): Promise<Branding> {
+  const safeId = id?.trim();
+  if (!safeId) throw new Error("Courier service id is required");
+  // ensure faviconUrl is never persisted — strip it from payload
+  const sanitized = { ...(payload as unknown as Record<string, unknown>) } as Record<string, unknown>;
+  delete sanitized.faviconUrl;
+  const response = (await requestJson(
+    `/api/backend/courier-service/branding/${encodeURIComponent(safeId)}`,
+    "Failed to create branding",
+    { method: "POST", headers: jsonHeaders(accessToken), body: JSON.stringify(sanitized) }
+  )) as unknown;
+
+  return response as Branding;
+}
+
+export async function updateBranding(
+  id: string,
+  payload: Partial<Branding>,
+  accessToken?: string
+): Promise<Branding> {
+  const safeId = id?.trim();
+  if (!safeId) throw new Error("Courier service id is required");
+  // never persist favicon when updating
+  const sanitized = { ...(payload as Record<string, unknown>) } as Record<string, unknown>;
+  delete sanitized.faviconUrl;
+  const response = (await requestJson(
+    `/api/backend/courier-service/branding/${encodeURIComponent(safeId)}`,
+    "Failed to update branding",
+    { method: "PATCH", headers: jsonHeaders(accessToken), body: JSON.stringify(sanitized) }
+  )) as unknown;
+
+  return response as Branding;
 }
 
 export async function approveCouriorServiceRequest(

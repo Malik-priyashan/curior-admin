@@ -9,7 +9,7 @@ import {
 } from "@/features/curior-services/lib/approved-services-cache";
 import type { CouriorService } from "../types/courior-service.types";
 
-export type CourierDetailsTab = "merchants" | "hubs" | "admins";
+export type CourierDetailsTab = "merchants" | "hubs" | "admins" | "branding";
 
 function displayValue(value?: string | null): string {
   return value?.trim() || "-";
