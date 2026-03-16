@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Image from "next/image";
 import {
   Table,
   TableBody,
@@ -30,6 +31,15 @@ type ServiceListCardProps = {
 
 function displayValue(value?: string | null): string {
   return value?.trim() || "-";
+}
+
+function normalizeImageUrl(value?: string | null): string | null {
+  const safe = value?.trim();
+  if (!safe) return null;
+  if (safe.startsWith("http://") || safe.startsWith("https://") || safe.startsWith("/")) {
+    return safe;
+  }
+  return `https://${safe}`;
 }
 
 export default function ServiceListCard({
@@ -62,6 +72,7 @@ export default function ServiceListCard({
               <TableHeader>
                 <TableRow>
                   <TableHead>Courier Service Name</TableHead>
+                  <TableHead>Branding</TableHead>
                   <TableHead>Phone No</TableHead>
                   <TableHead>Director Name</TableHead>
                   <TableHead>Address</TableHead>
@@ -70,6 +81,9 @@ export default function ServiceListCard({
               <TableBody>
                 {visibleServices.map((service, index) => {
                   const rowKey = displayValue(service.id);
+                  const logoUrl = normalizeImageUrl(
+                    service.branding?.logoUrl ?? (service.branding as { logo?: string | null } | undefined)?.logo
+                  );
 
                   return (
                     <TableRow
@@ -87,6 +101,21 @@ export default function ServiceListCard({
                     >
                       <TableCell className="font-semibold text-slate-900">
                         {displayValue(service.serviceName)}
+                      </TableCell>
+                      <TableCell>
+                        {logoUrl ? (
+                          <div className="h-8 w-8 rounded-md border border-slate-200 bg-white p-0.5">
+                            <Image
+                              src={logoUrl}
+                              alt={service.branding?.businessName ?? "logo"}
+                              width={32}
+                              height={32}
+                              className="rounded-md object-contain"
+                            />
+                          </div>
+                        ) : (
+                          displayValue(service.branding?.businessName ?? undefined)
+                        )}
                       </TableCell>
                       <TableCell>{displayValue(service.phone1 ?? service.directorPhone)}</TableCell>
                       <TableCell>{displayValue(service.directorName)}</TableCell>

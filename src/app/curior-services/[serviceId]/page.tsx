@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import AdminPage from "@/features/admin/page";
 import MerchantsPage from "@/features/merchants/page";
 import HubsPage from "@/features/hubs/page";
+import BrandingTab from "@/features/curior-services/components/BrandingTab";
 import { useAdminUsersByCourierService } from "@/features/admin/hooks/useAdminUsersByCourierService";
 import { useCouriorServices } from "@/features/curior-services/hooks/useCouriorServices";
 import { useHubsByCourierService } from "@/features/hubs/hooks/useHubsByCourierService";
@@ -113,6 +114,17 @@ export default function CourierServiceDetailsPage() {
             >
               Admins
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("branding")}
+              className={`rounded-full px-5 py-2 text-sm font-semibold transition-colors ${
+                activeTab === "branding"
+                  ? "bg-slate-900 text-white"
+                  : "bg-transparent text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              Branding
+            </button>
           </div>
         </div>
 
@@ -172,6 +184,7 @@ export default function CourierServiceDetailsPage() {
             onChange={handleChange}
           />
         )}
+        {activeTab === "branding" && <BrandingTab serviceId={serviceId} />}
       </div>
     </main>
   );

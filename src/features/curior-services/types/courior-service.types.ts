@@ -1,6 +1,7 @@
 export interface CouriorService {
   id: string;
   serviceName: string;
+  branding?: Branding | null;
   approved?: boolean | null;
   status?: string | null;
   requestStatus?: string | null;
@@ -90,3 +91,13 @@ export interface RiderListResponse {
 }
 
 export type { AdminUser as User, AdminUserListResponse as UserListResponse } from "@/features/admin/types/admin.types";
+
+export interface Branding {
+  colors: {
+    accent: string;
+    primary: string;
+    secondary: string;
+  };
+  logoUrl?: string | null;
+  businessName?: string | null;
+}
