@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ServiceListCard from "@/features/curior-services/components/ServiceListCard";
+import { useDeleteCourierService } from "@/features/curior-services/hooks/useDeleteCourierService";
+import DeleteConfirmationModal from "@/features/curior-services/components/DeleteConfirmationModal";
 import CreateCourierServiceModal from "@/features/curior-services/components/CreateCourierServiceModal";
 import { useCouriorServices } from "@/features/curior-services/hooks/useCouriorServices";
 import { useCreateCourierServiceRequest } from "@/features/curior-services/hooks/useCreateCourierServiceRequest";
@@ -26,6 +28,10 @@ export default function CuriorServicesPage() {
   } = useCreateCourierServiceRequest({ refreshAction: refresh });
 
   const [servicesPage, setServicesPage] = useState(1);
+  const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const deleteHook = useDeleteCourierService({ refreshAction: refresh });
 
   const totalServicesPages = Math.max(1, Math.ceil(services.length / PAGE_SIZE));
   const safeServicesPage = Math.min(servicesPage, totalServicesPages);
@@ -34,6 +40,10 @@ export default function CuriorServicesPage() {
 
   function handleSelectService(serviceId: string) {
     router.push(`/curior-services/${encodeURIComponent(serviceId)}`);
+  }
+
+  function handleDeleteService(serviceId: string, serviceName?: string | null) {
+    deleteHook.open(serviceId, serviceName ?? null);
   }
 
   return (
@@ -67,6 +77,18 @@ export default function CuriorServicesPage() {
           </div>
         ) : null}
 
+        {deleteMessage ? (
+          <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+            {deleteMessage}
+          </div>
+        ) : null}
+
+        {deleteError ? (
+          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {deleteError}
+          </div>
+        ) : null}
+
         <ServiceListCard
           isLoading={isLoading}
           error={error}
@@ -75,8 +97,22 @@ export default function CuriorServicesPage() {
           safeServicesPage={safeServicesPage}
           totalServicesPages={totalServicesPages}
           onSelectService={handleSelectService}
+          onDeleteService={(id: string, name?: string | null) => handleDeleteService(id, name)}
           onPreviousPage={() => setServicesPage((prev) => Math.max(1, prev - 1))}
           onNextPage={() => setServicesPage((prev) => Math.min(totalServicesPages, prev + 1))}
+        />
+
+        <DeleteConfirmationModal
+          isOpen={deleteHook.isOpen}
+          isDeleting={deleteHook.isDeleting}
+          error={deleteHook.error}
+          targetName={deleteHook.targetName}
+          onCancel={deleteHook.close}
+          onConfirm={async () => {
+            await deleteHook.confirm();
+            if (deleteHook.success) setDeleteMessage(deleteHook.success);
+            if (deleteHook.error) setDeleteError(deleteHook.error);
+          }}
         />
 
         <CreateCourierServiceModal

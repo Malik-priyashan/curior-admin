@@ -1,87 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { approveCouriorServiceRequest } from "@/features/curior-services/api/couriorapi";
-import { useCouriorServiceRequests } from "@/features/curior-services/hooks/useCouriorServiceRequests";
-import { addApprovedServiceToCache } from "@/features/curior-services/lib/approved-services-cache";
-import type { CouriorServiceRequest } from "@/features/curior-services/types/courior-service.types";
-import { useSession } from "next-auth/react";
-
-const PAGE_SIZE = 10;
-
-function displayValue(value?: string | null): string {
-  return value?.trim() || "-";
-}
-
-function requestStatus(request: CouriorServiceRequest): string {
-  return request.approved ? "Approved" : "Not Approved";
-}
-
-function canApprove(request: CouriorServiceRequest): boolean {
-  return request.approved !== true;
-}
-
-function requestDate(request: CouriorServiceRequest): string {
-  const raw = request.createdAt ?? request.requestedAt;
-  if (!raw?.trim()) return "-";
-
-  const date = new Date(raw);
-  if (Number.isNaN(date.getTime())) return raw;
-
-  return new Intl.DateTimeFormat("en-LK", {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
+import useCouriorServiceRequestsPage, {
+  displayValue,
+  requestDate,
+  requestStatus,
+  canApprove,
+} from "@/features/curior-services/hooks/useCouriorServiceRequestsPage";
 
 export default function CouriorServiceRequestsPage() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const { requests, isLoading, error, refresh } = useCouriorServiceRequests();
-  const [page, setPage] = useState(1);
-  const [approvingId, setApprovingId] = useState<string | null>(null);
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [removedRequestIds, setRemovedRequestIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (!actionMessage && !actionError) return;
-    const timeoutId = setTimeout(() => {
-      setActionMessage(null);
-      setActionError(null);
-    }, 3000);
-    return () => clearTimeout(timeoutId);
-  }, [actionMessage, actionError]);
-
-  async function onApprove(requestId: string) {
-    try {
-      setApprovingId(requestId);
-      setActionError(null);
-      const response = await approveCouriorServiceRequest(requestId, session?.accessToken);
-      addApprovedServiceToCache(response.data);
-      setRemovedRequestIds((prev) => (prev.includes(requestId) ? prev : [...prev, requestId]));
-      setActionMessage(response.message || "Courier service request approved successfully");
-      await refresh();
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Failed to approve courier service request");
-    } finally {
-      setApprovingId(null);
-    }
-  }
-
-  const visibleData = requests.filter((request) => !removedRequestIds.includes(request.id));
-  const recalculatedTotalPages = Math.max(1, Math.ceil(visibleData.length / PAGE_SIZE));
-  const safeCurrentPage = Math.min(page, recalculatedTotalPages);
-  const startIndex = (safeCurrentPage - 1) * PAGE_SIZE;
-  const visibleRequests = visibleData.slice(startIndex, startIndex + PAGE_SIZE);
+  const {
+    isLoading,
+    error,
+    refresh,
+    visibleRequests,
+    visibleCount,
+    recalculatedTotalPages,
+    safeCurrentPage,
+    setPage,
+    approvingId,
+    approvedIds,
+    rejectedIds,
+    actionMessage,
+    actionError,
+    onApprove,
+    onReject,
+  } = useCouriorServiceRequestsPage();
 
   return (
     <main className="h-screen overflow-y-auto bg-slate-50 p-4 md:p-8">
@@ -119,7 +68,7 @@ export default function CouriorServiceRequestsPage() {
               <p className="text-sm text-slate-500">Loading requests...</p>
             ) : error ? (
               <p className="text-sm text-red-500">{error}</p>
-            ) : visibleData.length === 0 ? (
+            ) : visibleCount === 0 ? (
               <p className="text-sm text-slate-500">No courier service requests found.</p>
             ) : (
               <div className="overflow-x-auto">
@@ -144,17 +93,27 @@ export default function CouriorServiceRequestsPage() {
                           <TableCell className="font-semibold text-slate-900">{displayValue(request.serviceName)}</TableCell>
                           <TableCell>{displayValue(request.phone1 ?? request.directorPhone)}</TableCell>
                           <TableCell>{displayValue(request.directorName)}</TableCell>
-                          <TableCell>{requestStatus(request)}</TableCell>
+                          <TableCell>{requestStatus(request, approvedIds, rejectedIds)}</TableCell>
                           <TableCell>{requestDate(request)}</TableCell>
                           <TableCell>{displayValue(request.address)}</TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              onClick={() => onApprove(request.id)}
-                              disabled={!request.id?.trim() || approvingId === request.id || !canApprove(request)}
-                            >
-                              {approvingId === request.id ? "Approving..." : "Approve"}
-                            </Button>
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => onApprove(request.id)}
+                                disabled={!request.id?.trim() || approvingId === request.id?.trim() || !canApprove(request, approvedIds, rejectedIds)}
+                              >
+                                {approvingId === request.id?.trim() ? "Accepting..." : "Accept"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => onReject(request.id)}
+                                disabled={!request.id?.trim() || rejectedIds.includes(request.id?.trim() ?? "")}
+                              >
+                                Reject
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

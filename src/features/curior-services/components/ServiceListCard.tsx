@@ -27,6 +27,7 @@ type ServiceListCardProps = {
   onSelectService: (serviceId: string) => void;
   onPreviousPage: () => void;
   onNextPage: () => void;
+  onDeleteService?: (serviceId: string, serviceName?: string | null) => void;
 };
 
 function displayValue(value?: string | null): string {
@@ -52,6 +53,7 @@ export default function ServiceListCard({
   onSelectService,
   onPreviousPage,
   onNextPage,
+  onDeleteService,
 }: ServiceListCardProps) {
   return (
     <Card className="border-slate-200 bg-white">
@@ -76,6 +78,7 @@ export default function ServiceListCard({
                   <TableHead>Phone No</TableHead>
                   <TableHead>Director Name</TableHead>
                   <TableHead>Address</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -120,6 +123,22 @@ export default function ServiceListCard({
                       <TableCell>{displayValue(service.phone1 ?? service.directorPhone)}</TableCell>
                       <TableCell>{displayValue(service.directorName)}</TableCell>
                       <TableCell>{displayValue(service.address)}</TableCell>
+                      <TableCell className="w-24">
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteService?.(service.id, service.serviceName ?? null);
+                            }}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   );
                 })}

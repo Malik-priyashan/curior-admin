@@ -167,4 +167,14 @@ export async function createCourierServiceRequest(
   return { message: response.message || "Courier service request created successfully", data };
 }
 
+export async function deleteCourierService(id: string, accessToken?: string): Promise<void> {
+  const safeId = id?.trim();
+  if (!safeId) throw new Error("Courier service id is required");
+  await requestJson(
+    `/api/backend/courier-service/${encodeURIComponent(safeId)}`,
+    "Failed to delete courier service",
+    { method: "DELETE", headers: jsonHeaders(accessToken) }
+  );
+}
+
 export { registerCuriorAdmin, getAdminUsers as getUsers } from "@/features/admin/api/admin.api";
