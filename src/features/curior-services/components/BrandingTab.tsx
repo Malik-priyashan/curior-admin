@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+// react hooks are used via custom hook; no direct React imports needed here
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,12 +17,16 @@ export default function BrandingTab({ serviceId }: Props) {
     setBranding,
     loading,
     saving,
+    uploading,
     editing,
     message,
     setEditing,
     updateField,
     handleSave,
     cancelEdit,
+    uploadImage,
+    getDisplayName,
+    isDataUrl,
   } = useBranding(serviceId);
 
   const hasBranding =
@@ -33,6 +38,9 @@ export default function BrandingTab({ serviceId }: Props) {
       !!branding.colors?.secondary?.trim());
 
   const logoUrl = normalizeImageUrl(branding?.logoUrl);
+
+  // image helpers and upload handled by hook
+  // image helpers and upload handled by hook
 
   if (loading) {
     return (
@@ -75,24 +83,71 @@ export default function BrandingTab({ serviceId }: Props) {
               readOnly={!editing}
               onChange={(e) => updateField("logoUrl", e.target.value)}
             />
+            {editing ? (
+              <div className="mt-2 flex items-center gap-2">
+                <Label className="sr-only">Upload a logo</Label>
+                {/* hidden file input triggered by the visible button */}
+                <input
+                  id={`branding-logo-file-${serviceId}`}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (!file) return;
+                    uploadImage(file).catch(() => {
+                      /* swallow errors — hook handles fallback */
+                    });
+                  }}
+                  className="hidden"
+                />
+
+                <Button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => {
+                    const el = document.getElementById(`branding-logo-file-${serviceId}`) as HTMLInputElement | null;
+                    el?.click();
+                  }}
+                >
+                  {uploading ? "Uploading..." : "Upload Image"}
+                </Button>
+
+                <span className="text-sm text-slate-600">
+                  {getDisplayName(branding?.logoUrl ?? undefined, branding?.logoFileName ?? undefined)}
+                </span>
+              </div>
+            ) : null}
             {logoUrl && !editing ? (
               <div className="mt-2 space-y-2">
                 <a
                   href={logoUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-sm text-blue-600 underline break-all"
+                  className="text-sm text-blue-600 underline"
+                  title={logoUrl}
                 >
-                  {logoUrl}
+                  {getDisplayName(logoUrl, branding?.logoFileName)}
                 </a>
                 <div className="h-20 w-20 rounded-md border border-slate-200 bg-white p-1">
-                  <Image
-                    src={logoUrl}
-                    alt="Brand logo preview"
-                    width={80}
-                    height={80}
-                    className="rounded-md object-contain"
-                  />
+                  {isDataUrl(logoUrl) ? (
+                    // Next/Image doesn't reliably support data URLs — use <img> for inline previews
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={logoUrl ?? undefined}
+                      alt="Brand logo preview"
+                      width={80}
+                      height={80}
+                      className="rounded-md object-contain"
+                    />
+                  ) : (
+                    <Image
+                      src={logoUrl!}
+                      alt="Brand logo preview"
+                      width={80}
+                      height={80}
+                      className="rounded-md object-contain"
+                    />
+                  )}
                 </div>
               </div>
             ) : null}

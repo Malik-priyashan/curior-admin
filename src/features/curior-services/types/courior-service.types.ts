@@ -99,5 +99,6 @@ export interface Branding {
     secondary: string;
   };
   logoUrl?: string | null;
+  logoFileName?: string | null;
   businessName?: string | null;
 }
