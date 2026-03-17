@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       publicId = businessName
         .trim()
         .toLowerCase()
-        .replace(/\s+/g, "_")
+        .replace(/\s+/g, "-")
         .replace(/[^a-z0-9_\-]/g, "");
       if (!publicId) publicId = undefined;
     }
