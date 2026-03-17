@@ -15,7 +15,8 @@ export function normalizeImageUrl(value?: string | null): string | null {
   if (
     safe.startsWith("http://") ||
     safe.startsWith("https://") ||
-    safe.startsWith("/")
+    safe.startsWith("/") ||
+    safe.startsWith("data:")
   ) {
     return safe;
   }
@@ -26,6 +27,7 @@ export function useBranding(serviceId: string) {
   const [branding, setBranding] = useState<Branding | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const originalRef = useRef<Branding | null>(null);
@@ -115,6 +117,63 @@ export function useBranding(serviceId: string) {
     });
   }
 
+  const isDataUrl = (u?: string | null) => !!u && u.startsWith("data:");
+
+  const getDisplayName = (url?: string | null, fileName?: string | null) => {
+    if (fileName && fileName.trim()) return fileName;
+    if (!url) return "";
+    if (isDataUrl(url)) {
+      const m = url.match(/^data:([^;]+);/);
+      if (m && m[1]) {
+        const parts = m[1].split("/");
+        const ext = parts[1] ?? "img";
+        return `uploaded-image.${ext}`;
+      }
+      return "uploaded-image";
+    }
+    try {
+      const u = new URL(url, window.location.origin);
+      const path = u.pathname.split("/").filter(Boolean).pop() ?? "image";
+      return decodeURIComponent(path);
+    } catch {
+      const parts = url.split("/");
+      return parts.pop() ?? url;
+    }
+  };
+
+  async function uploadImage(file: File) {
+    if (!file) return;
+    setUploading(true);
+    const reader = new FileReader();
+    const dataUrl: string = await new Promise((resolve) => {
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.readAsDataURL(file);
+    });
+
+    try {
+      const resp = await fetch("/api/cloudinary/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dataUrl, filename: file.name, serviceId, businessName: branding?.businessName ?? undefined }),
+      });
+      const json = await resp.json();
+      if (resp.ok && json.url) {
+        updateField("logoUrl", json.url);
+        updateField("logoFileName", file.name);
+      } else {
+        // fallback to inline data URL if upload failed
+        updateField("logoUrl", dataUrl);
+        updateField("logoFileName", file.name);
+      }
+    } catch {
+      // fallback on error
+      updateField("logoUrl", dataUrl);
+      updateField("logoFileName", file.name);
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function handleSave() {
     if (!branding) return;
 
@@ -164,6 +223,7 @@ export function useBranding(serviceId: string) {
     setBranding,
     loading,
     saving,
+    uploading,
     editing,
     message,
     setEditing,
@@ -171,5 +231,8 @@ export function useBranding(serviceId: string) {
     handleSave,
     cancelEdit,
     normalizeImageUrl,
+    isDataUrl,
+    getDisplayName,
+    uploadImage,
   } as const;
 }

@@ -37,7 +37,12 @@ function displayValue(value?: string | null): string {
 function normalizeImageUrl(value?: string | null): string | null {
   const safe = value?.trim();
   if (!safe) return null;
-  if (safe.startsWith("http://") || safe.startsWith("https://") || safe.startsWith("/")) {
+  if (
+    safe.startsWith("http://") ||
+    safe.startsWith("https://") ||
+    safe.startsWith("/") ||
+    safe.startsWith("data:")
+  ) {
     return safe;
   }
   return `https://${safe}`;
@@ -106,19 +111,31 @@ export default function ServiceListCard({
                         {displayValue(service.serviceName)}
                       </TableCell>
                       <TableCell>
-                        {logoUrl ? (
-                          <div className="h-8 w-8 rounded-md border border-slate-200 bg-white p-0.5">
-                            <Image
-                              src={logoUrl}
-                              alt={service.branding?.businessName ?? "logo"}
-                              width={32}
-                              height={32}
-                              className="rounded-md object-contain"
-                            />
-                          </div>
-                        ) : (
-                          displayValue(service.branding?.businessName ?? undefined)
-                        )}
+                            {logoUrl ? (
+                              <div className="h-8 w-8 rounded-md border border-slate-200 bg-white p-0.5">
+                                {logoUrl.startsWith("data:") ? (
+                                  // Next/Image doesn't support data URLs in the loader — use <img> for inline previews
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={logoUrl}
+                                    alt={service.branding?.businessName ?? "logo"}
+                                    width={32}
+                                    height={32}
+                                    className="rounded-md object-contain"
+                                  />
+                                ) : (
+                                  <Image
+                                    src={logoUrl}
+                                    alt={service.branding?.businessName ?? "logo"}
+                                    width={32}
+                                    height={32}
+                                    className="rounded-md object-contain"
+                                  />
+                                )}
+                              </div>
+                            ) : (
+                              displayValue(service.branding?.businessName ?? undefined)
+                            )}
                       </TableCell>
                       <TableCell>{displayValue(service.phone1 ?? service.directorPhone)}</TableCell>
                       <TableCell>{displayValue(service.directorName)}</TableCell>
